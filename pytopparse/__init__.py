@@ -10,6 +10,8 @@ import re
 #pylint: disable=no-name-in-module
 from pydantic import BaseModel
 
+__version__ = "0.0.1"
+
 RE_TOP_PROCESS = re.compile(
     r' *(?P<pid>\d{1,7}) +(?P<ppid>\d{1,7}) +(?P<user>\w{1,30})'
     r' +(?P<stat>.{1,3}) +(?P<vsz>\w{1,7}) +(?P<percent_vsz>\d{1,7})\%'
@@ -29,7 +31,7 @@ class TopProcess(BaseModel):
     command: str
 
     @staticmethod
-    def from_row(row_contents: str) -> Union["TopProcess" | None]:
+    def from_row(row_contents: str) -> Union["TopProcess", None]:
         """Parse the Row into Respective Data."""
         results = RE_TOP_PROCESS.search(row_contents)
         if results:
