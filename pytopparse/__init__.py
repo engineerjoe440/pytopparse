@@ -4,6 +4,7 @@ PyTopParse - Parse results of `/usr/bin/top -b -n 1`.
 """
 ################################################################################
 
+from typing import Union
 import re
 
 #pylint: disable=no-name-in-module
@@ -28,7 +29,7 @@ class TopProcess(BaseModel):
     command: str
 
     @staticmethod
-    def from_row(row_contents: str) -> "TopProcess" | None:
+    def from_row(row_contents: str) -> Union["TopProcess" | None]:
         """Parse the Row into Respective Data."""
         results = RE_TOP_PROCESS.search(row_contents)
         if results:
