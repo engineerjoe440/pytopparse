@@ -40,7 +40,7 @@ class TopProcess(BaseModel):
             group_data = results.groupdict()
             if str(group_data['vsz']).endswith('m'):
                 used = int(str(group_data['vsz']).split('m', maxsplit=1)[0])
-                group_data['vsz'] = used * 10e6
+                group_data['vsz'] = used * 1024*1024
             return TopProcess(**group_data)
         return None
 
@@ -60,11 +60,25 @@ class TopProcessList:
                 self.processes[proc.pid] = proc
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Root Name of the File Path."""
         return Path(self.file_path).name
 
-    def walk(self, reverse=False) -> Generator[TopProcess, None, None]:
+    @property
+    def unique_commands(self) -> list[str]:
+        """List of Unique Commands."""
+        commands = []
+        for proc in self.walk():
+            if proc.command not in commands:
+                commands.append(proc.command)
+        return commands
+
+    @property
+    def vsz_total(self):
+        """Total the `vsz` Totals."""
+        return sum(proc.vsz for proc in self.processes.values())
+
+    def walk(self, reverse: bool = True) -> Generator[TopProcess, None, None]:
         """Walk Over Processes."""
         for proc in sorted(
             self.processes.values(),
@@ -72,3 +86,12 @@ class TopProcessList:
             reverse=reverse
         ):
             yield proc
+
+    def walk_commands(self) -> Generator[filter, None, None]:
+        """Walk the Processes, Grouping Identical Commands."""
+        for command in self.unique_commands:
+            yield self.command_processes(command=command)
+
+    def command_processes(self, command: str) -> Generator[filter, None, None]:
+        """Evaluate the Processes Using the Specified Command."""
+        return filter(lambda p: p.command == command, self.processes.values())
